@@ -1,32 +1,53 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: github-actions-runner
+  name: github-enterprise
   labels:
-    app: github-actions-runner
+    app: github-enterprise
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: github-actions-runner
+      app: github-enterprise
   template:
     metadata:
       labels:
-        app: github-actions-runner
+        app: github-enterprise
     spec:
       containers:
-        - name: github-actions-runner
-          image: ltservices/github-actions-runner:1.0.0  # The image you'd create from the Dockerfile
+        - name: github-enterprise
+          image: ltservices/github-enterprise:1.0.1  
           ports:
             - containerPort: 8080
+            - containerPort: 8443  
           env:
-            - name: RUNNER_NAME
-              value: "self-hosted-runner"
-            - name: GITHUB_REPOSITORY
-              value: "your-org/your-repo"  # Define your GitHub repository here
-            - name: RUNNER_TOKEN
-              value: "your-token-here"     # Token for self-hosted runner
-            - name: RUNNER_WORK_DIRECTORY
-              value: "/runner/_work"
-            - name: RUNNER_LABELS
-              value: "self-hosted,Linux,X64"
+            - name: GITHUB_ENTERPRISE_HOST
+              value: "github.yourdomain.com"
+            - name: GITHUB_ENTERPRISE_PORT
+              value: "8080"
+            - name: GITHUB_ENTERPRISE_ADMIN_TOKEN
+              value: "your-admin-token-here"
+          volumeMounts:
+            - name: github-enterprise-storage
+              mountPath: /data/github
+      volumes:
+        - name: github-enterprise-storage
+          persistentVolumeClaim:
+            claimName: github-enterprise-pvc
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: github-enterprise-service
+spec:
+  type: LoadBalancer
+  selector:
+    app: github-enterprise
+  ports:
+    - protocol: TCP
+      port: 8080
+      targetPort: 8080
+    - protocol: TCP
+      port: 8443
+      targetPort: 8443
