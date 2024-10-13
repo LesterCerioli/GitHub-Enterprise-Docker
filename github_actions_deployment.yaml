@@ -1,0 +1,32 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: github-actions-runner
+  labels:
+    app: github-actions-runner
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: github-actions-runner
+  template:
+    metadata:
+      labels:
+        app: github-actions-runner
+    spec:
+      containers:
+        - name: github-actions-runner
+          image: ltservices/github-actions-runner:1.0.0  # The image you'd create from the Dockerfile
+          ports:
+            - containerPort: 8080
+          env:
+            - name: RUNNER_NAME
+              value: "self-hosted-runner"
+            - name: GITHUB_REPOSITORY
+              value: "your-org/your-repo"  # Define your GitHub repository here
+            - name: RUNNER_TOKEN
+              value: "your-token-here"     # Token for self-hosted runner
+            - name: RUNNER_WORK_DIRECTORY
+              value: "/runner/_work"
+            - name: RUNNER_LABELS
+              value: "self-hosted,Linux,X64"
